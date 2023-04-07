@@ -14,7 +14,7 @@ let path = [
 
 let npc = createNPC({position: Vector3.create(8,1,8), rotation:Quaternion.Zero(), scale: Vector3.create(1,1,1)}, {
   type: NPCType.BLANK,
-  faceUser: false,
+  faceUser: true,
   hoverText: "Custom Hover Text",
   onActivate:()=>{
     console.log("test onctivate function")

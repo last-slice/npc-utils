@@ -124,13 +124,6 @@ const onWalkAwayCbs: Map<Entity, any> = new Map()
             
             utils.triggers.addTrigger(npc,0,0, [],[{position: Vector3.create(pos.x, pos.y, pos.z), radius: data.reactDistance != undefined ? data.reactDistance : 6}], triggerData.onCameraEnter ? triggerData.onCameraEnter : undefined, triggerData.onCameraExit ? triggerData.onCameraExit : undefined, Color3.Red())
         }
-
-
-        // if (data && data.faceUser) {
-        //     Billboard.create(npc, {
-        //         billboardMode:BillboardMode.BM_Y
-        //     })
-        // }
     }
 
     function followPath(npc:Entity, data:FollowPathData){
@@ -279,7 +272,12 @@ const onWalkAwayCbs: Map<Entity, any> = new Map()
     isCooldown.set(npc, true)
 
     utils.timers.setTimeout(
-        function() { isCooldown.delete(npc)},
+        function() {
+            isCooldown.delete(npc)
+            if(Billboard.has(npc)){
+                Billboard.deleteFrom(npc)
+            }
+        },
         1000 * npcData.coolDownDuration
       )
   }
