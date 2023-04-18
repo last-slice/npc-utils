@@ -1,6 +1,4 @@
 import { Schemas, engine } from "@dcl/sdk/ecs";
-import { NPCState } from "./types";
-
 export const NPCDataComponent = engine.defineComponent(
 	"npcdatacomponent",
 	{
@@ -14,4 +12,5 @@ export const NPCDataComponent = engine.defineComponent(
         walkingAnim: Schemas.String,
         idleAnim: Schemas.String,
         lastPlayedAnim: Schemas.String,
+        path:Schemas.Array(Schemas.Vector3)
 	})

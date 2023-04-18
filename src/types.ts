@@ -1,7 +1,4 @@
-import { Entity } from "@dcl/sdk/ecs"
 import { Vector3 } from "@dcl/sdk/math"
-
-export type OnActivate = () => void
 
 /**
  * Fragment of a conversation with an NPC
@@ -132,7 +129,7 @@ export type Dialog = {
     model?:string
 
 
-
+    walkingAnim?:string
     portrait?: string | ImageData
     reactDistance?: number
     idleAnim?: string
@@ -174,10 +171,10 @@ export type Dialog = {
     startingPoint?: number
     loop?: boolean
     curve?: boolean
-    totalDuration?: number
+    totalDuration: number
     speed?: number
     path?: Vector3[]
-    pathLerpType?: NPCLerpType
+    pathType?: NPCPathType
     onFinishCallback?: () => void
     onReachedPointCallback?: () => void
   }
@@ -239,7 +236,7 @@ export type Dialog = {
   }
   
   
-  export enum NPCLerpType {
+  export enum NPCPathType {
     SMOOTH_PATH = 'smooth', //will follow the path but can cut sharp corners
     RIGID_PATH = 'rigid', //will ensure each corner is hit
   }
