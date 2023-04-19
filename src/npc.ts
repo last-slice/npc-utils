@@ -4,19 +4,27 @@ import { FollowPathData, NPCData, NPCPathType, NPCState, NPCType, TriggerData } 
 import * as utils from '@dcl-sdk/utils'
 import { IsFollowingPath } from './components';
 import { handlePathTimes } from './systems';
+import { createDialog } from './ui';
+import { addDialog, closeDialog, npcDialogComponent } from './dialog';
+
+export const walkingTimers: Map<Entity,number> = new Map()
+const walkingSystem = engine.addSystem(handlePathTimes)
+
+export const npcDataComponent: Map<Entity, any> = new Map()
 
 const isCooldown: Map<Entity, any> = new Map()
 const onActivateCbs: Map<Entity, any> = new Map()
 const onWalkAwayCbs: Map<Entity, any> = new Map()
 const idleAnim: Map<Entity,any> = new Map()
 const walkingAnim: Map<Entity,any> = new Map()
-export const walkingTimers: Map<Entity,number> = new Map()
 const animTimers: Map<Entity,any> = new Map()
-const walkingSystem = engine.addSystem(handlePathTimes)
 
-const npcDataComponent: Map<Entity, any> = new Map()
 const pointReachedCallbacks: Map<Entity, any> = new Map()
 const onFinishCallbacks: Map<Entity, any> = new Map()
+
+export function showDebug(debug:boolean){
+    utils.triggers.enableDebugDraw(debug)
+}
 
 export function createNPC(
     transform: TransformType,
@@ -37,8 +45,19 @@ export function createNPC(
         pathData: data.pathData ? data.pathData : undefined,
         currentPathData: [],
         manualStop:false,
-        pathIndex:0
+        pathIndex:0,
+        state:NPCState.STANDING
     })
+
+    let npcData = npcDataComponent.get(npc)
+
+    if(data && data.noUI){}
+    else if(data && data.portrait){}
+    else{
+        addDialog(npc)
+        createDialog(npc)
+    }
+
 
     onActivateCbs.set(npc, ()=>{
         data.onActivate()
@@ -46,6 +65,17 @@ export function createNPC(
 
     if (data && data.onWalkAway) {
         onWalkAwayCbs.set(npc, ()=>{
+            if(!data || !data.continueOnWalkAway){
+                if(npcDialogComponent.has(npc)){
+                    npcDialogComponent.get(npc).visible = false
+                }
+                
+            }
+            else{
+                if(npcDialogComponent.has(npc)){
+                    npcDialogComponent.get(npc).visible = false
+                }
+            }
             data.onWalkAway!()
         })
         }
@@ -202,9 +232,7 @@ function addTriggerArea(npc:Entity, data:NPCData){
     // add trigger
     if (triggerData.onCameraEnter || triggerData.onCameraExit) {
         let pos = Transform.get(npc).position
-
-        utils.triggers.addTrigger(npc,1,1,[{type:'sphere', position: Vector3.create(pos.x,pos.y,pos.z), radius: data.reactDistance != undefined ? data.reactDistance : 6}], triggerData.onCameraEnter ? triggerData.onCameraEnter : undefined, triggerData.onCameraExit ? triggerData.onCameraExit : undefined, Color3.Red())
-        utils.triggers.enableDebugDraw(true)
+        utils.triggers.addTrigger(npc,1,1,[{type:'sphere', position: Vector3.Zero(), radius: data.reactDistance != undefined ? data.reactDistance : 6}], triggerData.onCameraEnter ? triggerData.onCameraEnter : undefined, triggerData.onCameraExit ? triggerData.onCameraExit : undefined, Color3.Red())
     }
 }
 
@@ -377,34 +405,36 @@ utils.timers.setTimeout(
 }
 
 function endInteraction(npc:Entity) {
-    // let npcData = npcDataComponent.getMutable(npc)
-    // if (npcData.faceUser) {
-    //   this.getComponent(TrackUserFlag).active = false
-    // }
-    // if (this.dialog && this.dialog.isDialogOpen) {
-    //   this.dialog.closeDialogWindow()
-    // }
+     let npcData = npcDataComponent.get(npc)
+     npcData.state = NPCState.STANDING
+
+        if (npcDialogComponent.has(npc) && npcDialogComponent.get(npc).visible) {
+            closeDialog(npc)
+        }
+
+        if(Billboard.has(npc)){
+            Billboard.deleteFrom(npc)
+        }
+
     // if (this.bubble && this.bubble.isBubleOpen) {
     //   this.bubble.closeDialogWindow()
     // }
-    // npcData.state = NPCState.STANDING
 }
 
 /**
  * Ends interaction and calls the onWalkAway function
  */
 export function handleWalkAway(npc:Entity) {
-let npcData = npcDataComponent.get(npc)
-if (npcData.state == NPCState.FOLLOWPATH) {
-    //|| this.state == NPCState.FOLLOWPLAYER
-    return
-}
+    let npcData = npcDataComponent.get(npc)
+    if (npcData.state == NPCState.FOLLOWPATH) {
+        return
+    }
 
-endInteraction(npc)
+    endInteraction(npc)
 
-if (onWalkAwayCbs.get(npc)) {
-    onWalkAwayCbs.get(npc)()
-}
+    if (onWalkAwayCbs.get(npc)) {
+        onWalkAwayCbs.get(npc)()
+    }
 }
 
 export function playAnimation(npc:Entity, anim:string, loop?:boolean, duration?:number){

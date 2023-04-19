@@ -23,6 +23,10 @@ let testpcs = npc.createNPC({position: Vector3.create(8,0,8), rotation:Quaternio
   hoverText: "Activate",
   onActivate:()=>{
     console.log("test onctivate function")
+    npc.talk(
+      testpcs, 
+      [{text:"This is a label and this is a really long dialog and i want it to be multiple line sbut im not sure how to make that happen with this new ui system because there is not out of box wrapping unless i missed something, so i added a line break function", typeSpeed:0}, {text:'ok here we go', isEndOfDialog:true}]
+      )
   },
   onWalkAway:()=>{console.log('test on walk away function')},
   // pathData:{
